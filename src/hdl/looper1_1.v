@@ -314,6 +314,7 @@ module looper1_1(
     integer CH7=0;
     
     integer mixer=0;
+    integer intmixer=0;
     integer aux=0;
     
     always@(posedge(clk_out_100MHZ))begin
@@ -377,7 +378,7 @@ module looper1_1(
         end
     end
     
-    reg [1:0] mixer_state=0;
+    reg [2:0] mixer_state=0;
             //Mixer State Machine
     always @ (posedge(clk_out_100MHZ))begin
         case(mixer_state)
@@ -391,14 +392,22 @@ module looper1_1(
                     mixer_state<=0;
             end
             1: begin
-                mixer=CH0+CH1+CH2+CH3+CH4+CH5+CH6+CH7+aux+(32767*(1+p[0]+p[1]+p[2]+p[3]+p[4]+p[5]+p[6]+p[7]));
+                intmixer=(32767*(1+p[0]+p[1]+p[2]+p[3]+p[4]+p[5]+p[6]+p[7]));
                 mixer_state<=2;
             end
             2: begin
-                mix<=mixer;
+                intmixer=CH5+CH6+CH7+aux+intmixer;
                 mixer_state<=3;
-                end
+            end
             3: begin
+                mixer=CH0+CH1+CH2+CH3+CH4+intmixer;
+                mixer_state<=4;
+            end
+            4: begin
+                mix<=mixer;
+                mixer_state<=5;
+                end
+            5: begin
                 PWM<=mix[19:9];
                 mixer_state<=0;    
             end
